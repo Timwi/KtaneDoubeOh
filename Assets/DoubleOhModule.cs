@@ -154,7 +154,10 @@ public class DoubleOhModule : MonoBehaviour
     private void HandleSubmit()
     {
         if (_grid[_curPos] == 0)
+        {
+            _isSolved = true;
             Module.HandlePass();
+        }
         else if (_grid[_curPos] < 10)
         {
             Debug.LogFormat("[Double-Oh] Pressed Submit on number {0:00} (grid location {1},{2}).", _grid[_curPos], _curPos % 9 + 1, _curPos / 9 + 1);
