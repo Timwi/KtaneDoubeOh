@@ -146,8 +146,6 @@ public class DoubleOhModule : MonoBehaviour
             }
 
             yield return new WaitForSeconds(.25f * (1.1f - num));
-            if (_isSolved)
-                yield break;
         }
     }
 
