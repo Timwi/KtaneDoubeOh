@@ -35,10 +35,14 @@ public class DoubleOhModule : MonoBehaviour
     private ButtonFunction[] _functions;
     private bool _isSolved;
 
+    private static int _moduleIdCounter = 1;
+    private int _moduleId;
+
     void Start()
     {
+        _moduleId = _moduleIdCounter++;
         _curPos = Enumerable.Range(0, 9 * 9).Where(i => _grid[i] >= 10).Except(new[] { 13, 37, 40, 43, 67, 39, 41, 31, 49 }).PickRandom();
-        Debug.LogFormat("[Double-Oh] Start number is {0:00}.", _grid[_curPos]);
+        Debug.LogFormat("[Double-Oh #{1}] Start number is {0:00}.", _grid[_curPos], _moduleId);
 
         _functions = new ButtonFunction[5];
         _functions[0] = Rnd.Range(0, 2) == 0 ? ButtonFunction.SmallLeft : ButtonFunction.SmallRight;
@@ -94,7 +98,7 @@ public class DoubleOhModule : MonoBehaviour
                         return false;
                 }
                 _curPos = y * 9 + x;
-                Debug.LogFormat("[Double-Oh] Pressed {1}. Number is now {0:00} (grid location {2},{3}).", _grid[_curPos], _functions[j], _curPos % 9 + 1, _curPos / 9 + 1);
+                Debug.LogFormat("[Double-Oh #{4}] Pressed {1}. Number is now {0:00} (grid location {2},{3}).", _grid[_curPos], _functions[j], _curPos % 9 + 1, _curPos / 9 + 1, _moduleId);
                 return false;
             };
         }
@@ -158,7 +162,7 @@ public class DoubleOhModule : MonoBehaviour
         }
         else if (_grid[_curPos] < 10)
         {
-            Debug.LogFormat("[Double-Oh] Pressed Submit on number {0:00} (grid location {1},{2}).", _grid[_curPos], _curPos % 9 + 1, _curPos / 9 + 1);
+            Debug.LogFormat("[Double-Oh #{3}] Pressed Submit on number {0:00} (grid location {1},{2}).", _grid[_curPos], _curPos % 9 + 1, _curPos / 9 + 1, _moduleId);
             Module.HandleStrike();
         }
         else
