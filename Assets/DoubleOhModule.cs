@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using DoubleOh;
 using UnityEngine;
@@ -168,5 +169,50 @@ public class DoubleOhModule : MonoBehaviour
         }
         else
             Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.Strike, Module.transform);
+    }
+
+    IEnumerator ProcessTwitchCommand(string command)
+    {
+        var parts = command.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+
+        if (parts.Length == 1 && parts[0].Equals("cycle", StringComparison.InvariantCultureIgnoreCase))
+        {
+            for (int i = 0; i < Buttons.Length; i++)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    yield return Buttons[i];
+                    yield return new WaitForSeconds(1f);
+                    yield return Buttons[i];
+                }
+                yield return new WaitForSeconds(.5f);
+            }
+        }
+        else if (parts.Length > 1 && parts[0].Equals("press", StringComparison.InvariantCultureIgnoreCase))
+        {
+            var btns = new List<KMSelectable>();
+            foreach (var part in parts.Skip(1))
+            {
+                if (part.Equals("horiz1", StringComparison.InvariantCultureIgnoreCase))
+                    btns.Add(Buttons[1]);
+                else if (part.Equals("horiz2", StringComparison.InvariantCultureIgnoreCase))
+                    btns.Add(Buttons[2]);
+                else if (part.Equals("vert1", StringComparison.InvariantCultureIgnoreCase))
+                    btns.Add(Buttons[0]);
+                else if (part.Equals("vert2", StringComparison.InvariantCultureIgnoreCase))
+                    btns.Add(Buttons[3]);
+                else if (part.Equals("submit", StringComparison.InvariantCultureIgnoreCase))
+                    btns.Add(Buttons[4]);
+                else
+                    yield break;
+            }
+
+            foreach (var btn in btns)
+            {
+                yield return btn;
+                yield return new WaitForSeconds(.1f);
+                yield return btn;
+            }
+        }
     }
 }
