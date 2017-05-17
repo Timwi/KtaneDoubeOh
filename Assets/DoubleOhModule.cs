@@ -166,13 +166,16 @@ public class DoubleOhModule : MonoBehaviour
         {
             Debug.LogFormat("[Double-Oh #{3}] Pressed Submit on number {0:00} (grid location {1},{2}).", _grid[_curPos], _curPos % 9 + 1, _curPos / 9 + 1, _moduleId);
             Module.HandleStrike();
+            TwitchPlaysStrike = true;
         }
         else
             Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.Strike, Module.transform);
     }
 
+    private bool TwitchPlaysStrike;
     IEnumerator ProcessTwitchCommand(string command)
     {
+        TwitchPlaysStrike = false;
         var parts = command.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
         if (parts.Length == 1 && parts[0].Equals("cycle", StringComparison.InvariantCultureIgnoreCase))
@@ -184,6 +187,8 @@ public class DoubleOhModule : MonoBehaviour
                     yield return Buttons[i];
                     yield return new WaitForSeconds(1f);
                     yield return Buttons[i];
+                    if (TwitchPlaysStrike)
+                        yield break;
                 }
                 yield return new WaitForSeconds(.5f);
             }
@@ -212,6 +217,8 @@ public class DoubleOhModule : MonoBehaviour
                 yield return btn;
                 yield return new WaitForSeconds(.1f);
                 yield return btn;
+                if (TwitchPlaysStrike)
+                    yield break;
             }
         }
     }
