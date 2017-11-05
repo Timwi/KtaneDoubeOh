@@ -20,6 +20,7 @@ public class DoubleOhModule : MonoBehaviour
     public KMSelectable[] Buttons;
     public GameObject Screen;
     public MeshRenderer Dot;
+    public FakeStatusLight FakeStatusLight;
 
     private int[] _grid = @"
         60 02 15 57 36 83 48 71 24
@@ -103,8 +104,11 @@ public class DoubleOhModule : MonoBehaviour
                 return false;
             };
         }
-
         StartCoroutine(Coroutine());
+
+        FakeStatusLight = Instantiate(FakeStatusLight);
+        FakeStatusLight.GetStatusLights(transform);
+        FakeStatusLight.Module = Module;
     }
 
     private IEnumerator Coroutine()
@@ -160,15 +164,18 @@ public class DoubleOhModule : MonoBehaviour
         {
             Debug.LogFormat("[Double-Oh #{0}] Pressed Submit on 00. Module solved.", _moduleId);
             _isSolved = true;
-            Module.HandlePass();
+            FakeStatusLight.HandlePass(StatusLightState.Green);
         }
         else if (_grid[_curPos] < 10)
         {
             Debug.LogFormat("[Double-Oh #{3}] Pressed Submit on number {0:00} (grid location {1},{2}).", _grid[_curPos], _curPos % 9 + 1, _curPos / 9 + 1, _moduleId);
-            Module.HandleStrike();
+            FakeStatusLight.HandleStrike();
         }
         else
+        {
             Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.Strike, Module.transform);
+            FakeStatusLight.FlashStrike();
+        }
     }
 
     IEnumerator ProcessTwitchCommand(string command)

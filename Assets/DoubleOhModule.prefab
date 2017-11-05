@@ -269,6 +269,8 @@ MonoBehaviour:
   - {fileID: 114000011435355058}
   Screen: {fileID: 1000012263550248}
   Dot: {fileID: 23000012910735558}
+  FakeStatusLight: {fileID: 114000011072955414, guid: 809412060d7d1f44aa2b333aa8f8e0d4,
+    type: 2}
 --- !u!114 &11489324
 MonoBehaviour:
   m_ObjectHideFlags: 1
