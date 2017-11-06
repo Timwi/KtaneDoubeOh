@@ -164,7 +164,7 @@ public class DoubleOhModule : MonoBehaviour
         {
             Debug.LogFormat("[Double-Oh #{0}] Pressed Submit on 00. Module solved.", _moduleId);
             _isSolved = true;
-            FakeStatusLight.HandlePass(StatusLightState.Green);
+            FakeStatusLight.HandlePass();
         }
         else if (_grid[_curPos] < 10)
         {
