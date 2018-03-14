@@ -178,12 +178,17 @@ public class DoubleOhModule : MonoBehaviour
         }
     }
 
+#pragma warning disable 414
+    private string TwitchHelpMessage = @"Cycle the buttons with “!{0} cycle”. This presses each button 3 times, in the order of vert1, horiz1, horiz2, vert2, submit. Look at whether the arrow is horizontal or vertical, and whether it has one or two lines, to see which is which. Submit your answer with “!{0} press vert1 horiz1 horiz2 vert2 submit”.";
+#pragma warning restore 414
+
     IEnumerator ProcessTwitchCommand(string command)
     {
         var parts = command.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
         if (parts.Length == 1 && parts[0].Equals("cycle", StringComparison.InvariantCultureIgnoreCase))
         {
+            yield return null;
             for (int i = 0; i < Buttons.Length; i++)
             {
                 for (int j = 0; j < 3; j++)
@@ -214,11 +219,14 @@ public class DoubleOhModule : MonoBehaviour
                     yield break;
             }
 
-            foreach (var btn in btns)
+            if (btns.Count > 0)
             {
-                yield return btn;
-                yield return new WaitForSeconds(.1f);
-                yield return btn;
+                yield return null;
+                foreach (var btn in btns)
+                {
+                    btn.OnInteract();
+                    yield return new WaitForSeconds(.1f);
+                }
             }
         }
     }
