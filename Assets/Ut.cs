@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -32,7 +33,7 @@ namespace DoubleOh
         ///     List to shuffle.</param>
         /// <returns>
         ///     The list operated on.</returns>
-        public static IList<T> Shuffle<T>(this IList<T> list)
+        public static T Shuffle<T>(this T list) where T : IList
         {
             if (list == null)
                 throw new ArgumentNullException("list");

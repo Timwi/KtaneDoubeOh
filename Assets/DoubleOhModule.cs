@@ -22,7 +22,7 @@ public class DoubleOhModule : MonoBehaviour
     public MeshRenderer Dot;
     public FakeStatusLight FakeStatusLight;
 
-    private int[] _grid = @"
+    private readonly int[] _grid = @"
         60 02 15 57 36 83 48 71 24
         88 46 31 70 22 64 07 55 13
         74 27 53 05 41 18 86 30 62
@@ -35,6 +35,7 @@ public class DoubleOhModule : MonoBehaviour
 
     private int _curPos;
     private ButtonFunction[] _functions;
+    private string[] _sounds;
     private bool _isSolved;
 
     private static int _moduleIdCounter = 1;
@@ -54,61 +55,70 @@ public class DoubleOhModule : MonoBehaviour
         _functions[4] = ButtonFunction.Submit;
         _functions.Shuffle();
 
+        var sounds = Enumerable.Range(1, 4).Select(i => "DoubleOPress" + i).ToList().Shuffle();
+        sounds.Insert(Array.IndexOf(_functions, ButtonFunction.Submit), null);
+        _sounds = sounds.ToArray();
+
         _isSolved = false;
 
         for (int i = 0; i < Buttons.Length; i++)
-        {
-            var j = i;
-            Buttons[i].OnInteract += delegate
-            {
-                Buttons[j].AddInteractionPunch();
-                Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, Buttons[j].transform);
-                if (_isSolved)
-                    return false;
-
-                var x = _curPos % 9;
-                var y = _curPos / 9;
-                switch (_functions[j])
-                {
-                    case ButtonFunction.SmallLeft:
-                        x = (x / 3) * 3 + (x % 3 + 2) % 3;
-                        break;
-                    case ButtonFunction.SmallRight:
-                        x = (x / 3) * 3 + (x % 3 + 1) % 3;
-                        break;
-                    case ButtonFunction.SmallUp:
-                        y = (y / 3) * 3 + (y % 3 + 2) % 3;
-                        break;
-                    case ButtonFunction.SmallDown:
-                        y = (y / 3) * 3 + (y % 3 + 1) % 3;
-                        break;
-                    case ButtonFunction.LargeLeft:
-                        x = (x + 6) % 9;
-                        break;
-                    case ButtonFunction.LargeRight:
-                        x = (x + 3) % 9;
-                        break;
-                    case ButtonFunction.LargeUp:
-                        y = (y + 6) % 9;
-                        break;
-                    case ButtonFunction.LargeDown:
-                        y = (y + 3) % 9;
-                        break;
-
-                    default:    // submit button
-                        HandleSubmit();
-                        return false;
-                }
-                _curPos = y * 9 + x;
-                Debug.LogFormat("[Double-Oh #{4}] Pressed {1}. Number is now {0:00} (grid location {2},{3}).", _grid[_curPos], _functions[j], _curPos % 9 + 1, _curPos / 9 + 1, _moduleId);
-                return false;
-            };
-        }
+            Buttons[i].OnInteract += GetButtonHandler(i);
         StartCoroutine(Coroutine());
 
         FakeStatusLight = Instantiate(FakeStatusLight);
         FakeStatusLight.GetStatusLights(transform);
         FakeStatusLight.Module = Module;
+    }
+
+    private KMSelectable.OnInteractHandler GetButtonHandler(int i)
+    {
+        return delegate
+        {
+            Buttons[i].AddInteractionPunch();
+            Audio.PlayGameSoundAtTransform(KMSoundOverride.SoundEffect.ButtonPress, Buttons[i].transform);
+            if (_isSolved)
+                return false;
+
+            if (_sounds[i] != null)
+                Audio.PlaySoundAtTransform(_sounds[i], Buttons[i].transform);
+
+            var x = _curPos % 9;
+            var y = _curPos / 9;
+            switch (_functions[i])
+            {
+                case ButtonFunction.SmallLeft:
+                    x = (x / 3) * 3 + (x % 3 + 2) % 3;
+                    break;
+                case ButtonFunction.SmallRight:
+                    x = (x / 3) * 3 + (x % 3 + 1) % 3;
+                    break;
+                case ButtonFunction.SmallUp:
+                    y = (y / 3) * 3 + (y % 3 + 2) % 3;
+                    break;
+                case ButtonFunction.SmallDown:
+                    y = (y / 3) * 3 + (y % 3 + 1) % 3;
+                    break;
+                case ButtonFunction.LargeLeft:
+                    x = (x + 6) % 9;
+                    break;
+                case ButtonFunction.LargeRight:
+                    x = (x + 3) % 9;
+                    break;
+                case ButtonFunction.LargeUp:
+                    y = (y + 6) % 9;
+                    break;
+                case ButtonFunction.LargeDown:
+                    y = (y + 3) % 9;
+                    break;
+
+                default:    // submit button
+                    HandleSubmit();
+                    return false;
+            }
+            _curPos = y * 9 + x;
+            Debug.LogFormat("[Double-Oh #{4}] Pressed {1}. Number is now {0:00} (grid location {2},{3}).", _grid[_curPos], _functions[i], _curPos % 9 + 1, _curPos / 9 + 1, _moduleId);
+            return false;
+        };
     }
 
     private IEnumerator Coroutine()
@@ -165,6 +175,7 @@ public class DoubleOhModule : MonoBehaviour
             Debug.LogFormat("[Double-Oh #{0}] Pressed Submit on 00. Module solved.", _moduleId);
             _isSolved = true;
             FakeStatusLight.HandlePass();
+            Audio.PlaySoundAtTransform("DoubleOSolve", transform);
         }
         else if (_grid[_curPos] < 10)
         {
@@ -179,7 +190,7 @@ public class DoubleOhModule : MonoBehaviour
     }
 
 #pragma warning disable 414
-    private string TwitchHelpMessage = @"Cycle the buttons with “!{0} cycle”. This presses each button 3 times, in the order of vert1, horiz1, horiz2, vert2, submit. Look at whether the arrow is horizontal or vertical, and whether it has one or two lines, to see which is which. Submit your answer with “!{0} press vert1 horiz1 horiz2 vert2 submit”.";
+    private readonly string TwitchHelpMessage = @"Cycle the buttons with “!{0} cycle”. This presses each button 3 times, in the order of vert1, horiz1, horiz2, vert2, submit. Look at whether the arrow is horizontal or vertical, and whether it has one or two lines, to see which is which. Submit your answer with “!{0} press vert1 horiz1 horiz2 vert2 submit”.";
 #pragma warning restore 414
 
     IEnumerator ProcessTwitchCommand(string command)
