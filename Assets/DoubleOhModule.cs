@@ -241,4 +241,48 @@ public class DoubleOhModule : MonoBehaviour
             }
         }
     }
+
+    IEnumerator TwitchHandleForcedSolve()
+    {
+        int submitButton = -1;
+
+        for (var btnIx = 0; btnIx < _functions.Length; btnIx++)
+        {
+            Func<bool> isCorrect;
+            switch (_functions[btnIx])
+            {
+                case ButtonFunction.SmallLeft:
+                case ButtonFunction.SmallRight:
+                    isCorrect = () => _curPos % 3 == 1;
+                    break;
+
+                case ButtonFunction.LargeLeft:
+                case ButtonFunction.LargeRight:
+                    isCorrect = () => (_curPos / 3) % 3 == 1;
+                    break;
+
+                case ButtonFunction.SmallUp:
+                case ButtonFunction.SmallDown:
+                    isCorrect = () => (_curPos / 9) % 3 == 1;
+                    break;
+
+                case ButtonFunction.LargeUp:
+                case ButtonFunction.LargeDown:
+                    isCorrect = () => (_curPos / 27) % 3 == 1;
+                    break;
+
+                default:
+                    submitButton = btnIx;
+                    continue;
+            }
+
+            while (!isCorrect())
+            {
+                Buttons[btnIx].OnInteract();
+                yield return new WaitForSeconds(.1f);
+            }
+        }
+
+        Buttons[submitButton].OnInteract();
+    }
 }
