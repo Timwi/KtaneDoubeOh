@@ -63,7 +63,7 @@ public class DoubleOhModule : MonoBehaviour
 
         for (int i = 0; i < Buttons.Length; i++)
             Buttons[i].OnInteract += GetButtonHandler(i);
-        StartCoroutine(Coroutine());
+        StartCoroutine(Flicker());
 
         FakeStatusLight = Instantiate(FakeStatusLight);
         FakeStatusLight.GetStatusLights(transform);
@@ -121,10 +121,11 @@ public class DoubleOhModule : MonoBehaviour
         };
     }
 
-    private IEnumerator Coroutine()
+    private IEnumerator Flicker()
     {
         yield return null;
 
+        var random = new System.Random();
         var segments = "12"
             .Select(ch => Screen.transform.Find("Digit" + ch))
             .Select(digit => "0123456".Select(ch => digit.Find("Segment" + ch).gameObject).ToArray())
@@ -134,7 +135,7 @@ public class DoubleOhModule : MonoBehaviour
 
         while (true)
         {
-            var num = Rnd.Range(.1f, 1f);
+            var num = .9 * random.NextDouble() + .1;
 
             var digit1 = _grid[_curPos] / 10;
             var digit2 = _grid[_curPos] % 10;
@@ -146,15 +147,15 @@ public class DoubleOhModule : MonoBehaviour
 
             if (digit1 == 0)
             {
-                var one = Rnd.Range(0f, 1f) * num;
-                var two = Rnd.Range(0f, 1f) * num;
+                var one = (float) (random.NextDouble() * num);
+                var two = (float) (random.NextDouble() * num);
                 segments[1][0].GetComponent<MeshRenderer>().material.color = new Color(0x43 / 255f, 0x43 / 255f, 0x43 / 255f, one);
                 segments[1][1].GetComponent<MeshRenderer>().material.color = new Color(0x43 / 255f, 0x43 / 255f, 0x43 / 255f, one);
-                segments[1][2].GetComponent<MeshRenderer>().material.color = new Color(0x43 / 255f, 0x43 / 255f, 0x43 / 255f, Rnd.Range(0f, 1f) * num);
+                segments[1][2].GetComponent<MeshRenderer>().material.color = new Color(0x43 / 255f, 0x43 / 255f, 0x43 / 255f, (float) (random.NextDouble() * num));
                 segments[1][3].GetComponent<MeshRenderer>().material.color = new Color(0x43 / 255f, 0x43 / 255f, 0x43 / 255f, two);
                 segments[1][4].GetComponent<MeshRenderer>().material.color = new Color(0x43 / 255f, 0x43 / 255f, 0x43 / 255f, two);
-                segments[1][5].GetComponent<MeshRenderer>().material.color = new Color(0x43 / 255f, 0x43 / 255f, 0x43 / 255f, Rnd.Range(0f, 1f) * num);
-                segments[1][6].GetComponent<MeshRenderer>().material.color = new Color(0x43 / 255f, 0x43 / 255f, 0x43 / 255f, Rnd.Range(0f, 1f) * num);
+                segments[1][5].GetComponent<MeshRenderer>().material.color = new Color(0x43 / 255f, 0x43 / 255f, 0x43 / 255f, (float) (random.NextDouble() * num));
+                segments[1][6].GetComponent<MeshRenderer>().material.color = new Color(0x43 / 255f, 0x43 / 255f, 0x43 / 255f, (float) (random.NextDouble() * num));
                 Dot.material.color = new Color(0x43 / 255f, 0x43 / 255f, 0x43 / 255f, one);
             }
             else
@@ -164,7 +165,7 @@ public class DoubleOhModule : MonoBehaviour
                 Dot.material.color = new Color(0x43 / 255f, 0x43 / 255f, 0x43 / 255f, 1);
             }
 
-            yield return new WaitForSeconds(.25f * (1.1f - num));
+            yield return new WaitForSeconds((float) (.25 * (1.1 - num)));
         }
     }
 
