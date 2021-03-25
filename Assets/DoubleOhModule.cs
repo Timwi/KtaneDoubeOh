@@ -16,13 +16,14 @@ public class DoubleOhModule : MonoBehaviour
     public KMBombInfo Bomb;
     public KMBombModule Module;
     public KMAudio Audio;
+    public KMRuleSeedable RuleSeedable;
 
     public KMSelectable[] Buttons;
     public GameObject Screen;
     public MeshRenderer Dot;
     public FakeStatusLight FakeStatusLight;
 
-    private readonly int[] _grid = @"
+    private static readonly int[] _seed1_grid = @"
         60 02 15 57 36 83 48 71 24
         88 46 31 70 22 64 07 55 13
         74 27 53 05 41 18 86 30 62
@@ -32,6 +33,91 @@ public class DoubleOhModule : MonoBehaviour
         06 38 42 84 63 20 75 17 51
         25 73 67 16 58 01 34 82 40
         11 54 80 32 77 45 23 66 08".Trim().Replace("\r", "").Split(new[] { ' ', '\n' }, StringSplitOptions.RemoveEmptyEntries).Select(str => int.Parse(str)).ToArray();
+
+    private static readonly string[] _sudokus = new[]
+    {
+        "abcdefghighiabcdefdefghiabcbcaefdhighigbcaefdefdhigbcacabfdeighighcabfdefdeighcab",
+        "abcdefghiighabcdefdefhigabcbcaefdighhigbcaefdefdghibcacabfdehigghicabfdefdeighcab",
+        "abcdefghifdehigabcighabcefdefdighcabghicabdefcabfdehighigbcafdebcaefdighdefghibca",
+        "abcdefghihigabcfdeefdighabcbcafdeighghibcaefddefhigbcacabefdhigighcabdeffdeghicab",
+        "abcdefghidefghiabcghiabcdeffdeighcabighcabfdecabfdeighhigbcaefdbcaefdhigefdhigbca",
+        "abcdefghihgiabcdefedfghiabcbcahfgeidgiebdacfhdfhciebgacabfghideihdeabfcgfegicdhab",
+        "abcdefghihigabcfdeefdighabcbcafdeighgeibhacfddhfcigbeacabhfdeigigheabdcffdegcihab",
+        "abcdefghihgfabicdeedihcgabfbfaciehgddigbhaefccehgfdbiaiabedhfcggcdfabiehfheigcdab",
+        "abcdefghihgfabicededigchabfbiacdgefhghebfadiccfdhiebgafabigdhceicheabfdgdegfhciab",
+        "abcdefghigihabcdefdfeghiabcbcahfdeighdiegacfbegfcibhdacabidefghihdfagbcefegbchiad",
+        "abcdefghigihabcdfedfegihabcbcafgeidhfhgidacebiedchbfgacabefghidegihadbcfhdfbcieag",
+        "abcdefghihigabcfdeefdighabcbcafdeighdeighacfbghfcibdeacabhfgeidigheadbcffdebcihag",
+        "abcdefghiiehabgcfdfdghicabebgaidefchhiefcadgbcfdghbieaeabcfdhigghfeaibdcdcibgheaf",
+        "abcdefghiheiabgdfcdfgihcabebiafcehdgfhegdacibgcdhibfeaeabcfhigdigheadbcfcdfbgieah",
+        "abcdefghiifhabgcdeegdhicabfhiacdbefgdcfegahibgebfhidcafaeichbgdbhigadfeccdgbfeiah",
+        "abcdefghifihabgcdeedgihcafbigabfhecddhbecaigfcefgidhbahaecdbfiggfdhaibecbcifgedah",
+        "abcdefghigeiabhcdffdhgciabebcaidehfghiefgcdabdgfhabieceabcidfghifdehgbcachgbfaeid",
+        "abcdefghihfeaigbdcgidbchafefgaedbcihdcbghieafehifacdbgbaghfeicdiehcbdfgacdfigaheb",
+        "abcdefghiidhcgbfaeefghiabcdghiabcdeffaeidhcgbbcdefghiadefghiabccgbfaeidhhiabcdefg",
+        "abcdefghigdhcibafeefihgabdcihgfbdceafaeichdgbbcdeaghifceaghifbddgbafeichhifbdceag",
+        "abcdefghighiabcdefdefghiabcfdehigcabcabfdehighigcabfdeighbcaefdefdighbcabcaefdigh",
+        "abcdefghihigcabfdeefdighbcacabfdehigighbcaefddefghiabcbcaefdighghiabcdeffdehigcab",
+        "abcdefghihigcabefdfdeighbcacabfdehigighbcadefefdghiabcbcaefdighghiabcfdedefhigcab",
+        "abcdefghihigcabefdfdeighbcacabefdhigighbcafdedefghiabcbcafdeighghiabcdefefdhigcab",
+        "abcdefghiighcabfdeefdhigbcagaifbcdehhdeigacfbbcfehdaigdeagfihbcchbadeigffigbchead",
+        "abcdefghighiabcdefdefghiabcefdhigcabcabefdhighigcabefdighbcafdefdeighbcabcafdeigh",
+        "abcdefghihdiabgecfegfchiabdcfheidbgabeagfhdicdigbcahfeicehabfdgfhdigecabgabfdcieh",
+        "abcdefghieihabgfcddgfcihabefcdhgebiabeaidchgfghibfaedcidgeabcfhcfeghidabhabfcdieg",
+        "abcdefghihigabcfdedefhigcabfdecabhigcabighefdighfdebcabcaghidefghiefdabcefdbcaigh",
+        "abcdefghighicabdeffdeighabccabhigfdeighfdecabefdbcaighdefabchigbcaghiefdhigefdbca",
+        "abcdefghiighcabdeffdeghiabccabighfdehigfdecabefdbcaighdefabchigbcahigefdghiefdbca",
+        "abcdefghiighcabdeffdeghiabccabhigfdeghifdecabefdbcahigdefabcighbcaighefdhigefdbca",
+        "abcdefghiighcabefdefdghiabccabighdefhigfdecabdefbcaighfdeabchigbcahigfdeghiefdbca",
+        "abcdefghighicabefdefdighabciabhdgcefdghfceiabcefbiadghfieabdhcgbdaghcfiehcgefibda",
+        "abcdefghighicabefdefdighabchageidbcfidefbchagbcfghaidefghadecibdeabcifghcibhfgdea",
+        "abcdefghiighcabefdefdghiabcghifdecabdefbcahigcabhigdefhigefdbcafdeabcighbcaighfde",
+        "abcdefghiighcabefdefdghiabcghiefdcabfdebcahigcabhigfdehigfdebcadefabcighbcaighdef",
+        "abcdefghihigabcfdedefhigcabefdcabhigcabighdefighefdbcabcaghiefdghifdeabcfdebcaigh",
+        "abcdefghighicabdeffdeighabccabhigefdighefdcabdefbcaighefdabchigbcaghifdehigfdebca",
+        "abcdefghighicabefdefdighabchabeigdcfigefdchabdcfbhaigefdhabecigbeagcifdhcighfdbea",
+        "abcdefghighicabefdefdighabciahfdgcebdgfbceiahcebhiadgfhieafdbcgfdagbchiebcgehifda",
+        "abcdefghighfiabecdeidcghabfhaiecgdfbfgebdihacdcbfhaigecdhafebigieagbcfdhbfghidcea",
+        "abcdefghighicabdeffdeighabcighefdcabdefbcaighcabhigefdhigfdebcaefdabchigbcaghifde",
+        "abcdefghighicabdeffdeighabchigefdcabdefbcahigcabghiefdighfdebcaefdabcighbcahigfde",
+        "abcdefghiighcabdeffdeghiabcghiefdcabdefbcahigcabhigefdhigfdebcaefdabcighbcaighfde",
+        "abcdefghigheiabcfdifdcghabecghefdiabfdibcaegheabhigfdchigfdcbeadefabihcgbcaghedif",
+        "abcdefghifdihagebceghibcafdhigbcedafdefghacibcabfdihegifdeghbcabceafdighghacibfde",
+        "abcdefghighicabdeffdeighabcighefdbcadefabcighbcahigefdhigfdecabefdbcahigcabghifde",
+        "abcdefghighicabdeffdeighabchigefdbcadefabchigbcaghiefdighfdecabefdbcaighcabhigfde",
+        "abcdefghiighcabdeffdeghiabcghiefdbcadefabchigbcahigefdhigfdecabefdbcaighcabighfde",
+        "abcdefghidefighabcghiabcdefighbcaefdfdeghicabcabfdeighhigefdbcabcahigfdeefdcabhig",
+        "abcdefghidefighabcighabcfdefdebcaighghifdecabcabhigdefhigefdbcabcaghiefdefdcabhig",
+        "abcdefghihifabgcdedeghicfabcdefabhiggabichefdifhgdebcabgachideffhiegdabcecdbfaigh",
+        "abcdefghiighcabefdefdghiabcghiefdbcafdeabchigbcahigfdehigfdecabdefbcaighcabighdef",
+        "abcdefghighibcadeffdeighbcabcahigefdighefdcabdefcabighefdabchigcabghifdehigfdeabc",
+        "abcdefghifdgahibceiehbcgdafhiecabfdgdafighebccgbfdehiabcagfdiehghiebcafdefdhiacgb",
+        "abcdefghiefdighabcghicabefdbcaefdighfdeghicabhigabcdefdefhigbcaighbcafdecabfdehig",
+        "abcdefghifheaigbcddigbchaefidhcgbfaebcaefidghgefhadibchadibcefgcgbfdehiaefighacdb",
+        "abcdefghihidagcfbegefhibacdfgebcdiahcdaghiefbbhifaedgcdagibhcefichefgbdaefbcdahig",
+        "abcdefghihigabcfdedefhigcabghibcadeffdeighabccabefdhigighcabefdefdghibcabcafdeigh",
+        "abcdefghifhiacgbdegdehbiafchgacfbeiddefighcabicbeadfghbahgicdefefdbhaicgcigfdehba",
+        "abcdefghihidacgebfgefbhiadcegahidfcbcdbfgeiahifhcabdgebaegfchiddhiebacfgfcgidhbea",
+        "abcdefghidefhigabcighabcdefcabfdehigfdeighcabghicabfdebcaghiefdefdbcaighhigefdbca",
+        "abcdefghifdeighcabhigbcaefdehiabgdcfgabfdciehcfdhiebgadgfeabhicichgfdabebeachifdg",
+        "abcdefghifdeighcabhigbcaefdehdaigbcfgaifbcdehcfbhdeigaigfeadhbcbchgfiadedeachbfig",
+        "abcdefghiefdhigabcighabcfdecabefdhigfdeighcabghicabdefbcaghiefddefbcaighhigfdebca",
+        "abcdefghidefghiabcghiabcdefeabfdgichfdgicheabicheabfdgbgahiecfdcfdbgahiehiecfdbga",
+        "abcdefghifdehigcabighbcaefdhigabcdefcabfdeighefdghibcadefcabhigghiefdabcbcaighfde",
+        "abcdefghifdehigcabighbcaefdhigabcfdecabefdighdefghibcaefdcabhigghifdeabcbcaighdef",
+        "abcdefghiefdhigcabighbcafdehigabcefdcabfdeighdefghibcafdecabhigghiefdabcbcaighdef",
+        "abcdefghidefghiabcghiabcdefeadfigbchfigbcheadbcheadfigigahdecfbcfbigahdehdecfbiga",
+        "abcdefghidefhigabcighabcdefcabfdeighfdeghicabhigcabfdebcaighefdefdbcahigghiefdbca",
+        "abcdefghiefdhigabcighabcfdecabfdeighdefghicabhigcabefdbcaighdeffdebcahigghiefdbca",
+        "abcdefghidefghiabcghiabcdeffabidecghidecghfabcghfabidebiahfgecdecdbiahfghfgecdbia",
+        "abcdefghidefghiabcghiabcdeffaeidhcgbidhcgbfaecgbfaeidhhiaefgbcdbcdhiaefgefgbcdhia",
+        "abcdefghidefghicabhigcabefdcabhigdeffdebcahigighfdebcaefdighabcghiabcfdebcaefdigh",
+        "abcdefghihdeaigfbcgfibchadeegafbdichicfghedabdhbcaiegfbagefchidcehidabfgfidhgbcea"
+    };
+
+    private static readonly int[][] _validPairs = new[] { new[] { 0, 2 }, new[] { 0, 4 }, new[] { 1, 2 }, new[] { 1, 4 }, new[] { 3, 4 }, new[] { 4, 18 }, new[] { 4, 24 }, new[] { 17, 18 }, new[] { 20, 21 }, new[] { 20, 22 }, new[] { 20, 23 }, new[] { 20, 24 }, new[] { 21, 25 }, new[] { 22, 25 }, new[] { 23, 25 }, new[] { 24, 25 }, new[] { 28, 29 }, new[] { 28, 30 }, new[] { 28, 31 }, new[] { 28, 32 }, new[] { 28, 33 }, new[] { 28, 34 }, new[] { 28, 35 }, new[] { 28, 36 }, new[] { 28, 38 }, new[] { 28, 39 }, new[] { 28, 40 }, new[] { 28, 42 }, new[] { 28, 43 }, new[] { 28, 44 }, new[] { 28, 47 }, new[] { 28, 48 }, new[] { 28, 49 }, new[] { 28, 53 }, new[] { 28, 54 }, new[] { 29, 37 }, new[] { 30, 37 }, new[] { 31, 37 }, new[] { 32, 37 }, new[] { 33, 37 }, new[] { 34, 37 }, new[] { 35, 37 }, new[] { 36, 37 }, new[] { 37, 38 }, new[] { 37, 39 }, new[] { 37, 40 }, new[] { 37, 41 }, new[] { 37, 42 }, new[] { 37, 43 }, new[] { 37, 44 }, new[] { 37, 45 }, new[] { 37, 46 }, new[] { 37, 47 }, new[] { 37, 48 }, new[] { 37, 49 }, new[] { 37, 50 }, new[] { 37, 51 }, new[] { 37, 53 }, new[] { 37, 54 }, new[] { 52, 53 }, new[] { 52, 54 }, new[] { 53, 55 }, new[] { 54, 55 }, new[] { 62, 63 }, new[] { 62, 64 }, new[] { 63, 65 }, new[] { 63, 71 }, new[] { 63, 72 }, new[] { 64, 65 }, new[] { 64, 71 }, new[] { 64, 72 }, new[] { 66, 67 }, new[] { 66, 68 }, new[] { 66, 69 }, new[] { 67, 70 }, new[] { 67, 73 }, new[] { 67, 74 }, new[] { 68, 70 }, new[] { 68, 73 }, new[] { 68, 74 }, new[] { 69, 70 }, new[] { 69, 73 }, new[] { 69, 74 }, new[] { 75, 76 } };
+
+    private int[] _grid;
 
     private int _curPos;
     private ButtonFunction[] _functions;
@@ -44,6 +130,30 @@ public class DoubleOhModule : MonoBehaviour
     void Start()
     {
         _moduleId = _moduleIdCounter++;
+
+        // RULE SEED
+        var rnd = RuleSeedable.GetRNG();
+        Debug.LogFormat("[Double-Oh #{0}] Using rule seed: {1}", _moduleId, rnd.Seed);
+        if (rnd.Seed == 1)
+            _grid = _seed1_grid;
+        else
+        {
+            // Add extra randomness
+            for (var i = rnd.Next(0, 10); i > 0; i--)
+                rnd.NextDouble();
+
+            var randomPair = _validPairs[rnd.Next(0, _validPairs.Length)].Select(ix =>
+            {
+                var gridInt = _sudokus[ix].Select(ch => ch - 'a').ToArray();
+                var middleChar = gridInt[40];
+                var numbering = rnd.ShuffleFisherYates(Enumerable.Range(1, 8).ToList());
+                numbering.Insert(middleChar, 0);
+                return gridInt.Select(i => numbering[i]).ToArray();
+            }).ToArray();
+            _grid = Enumerable.Range(0, 81).Select(ix => randomPair[0][ix] * 10 + randomPair[1][ix]).ToArray();
+        }
+        // END RULE SEED
+
         _curPos = Enumerable.Range(0, 9 * 9).Where(i => _grid[i] >= 10).Except(new[] { 13, 37, 40, 43, 67, 39, 41, 31, 49 }).PickRandom();
         Debug.LogFormat("[Double-Oh #{1}] Start number is {0:00}.", _grid[_curPos], _moduleId);
 
